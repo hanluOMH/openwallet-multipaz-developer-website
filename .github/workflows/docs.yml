@@ -3,7 +3,7 @@ name: Build and Deploy Docusaurus with KDocs
 on:
   push:
     branches:
-      - main
+      - temp
   workflow_dispatch:
   repository_dispatch:
     types: [kotlin-repo-updated]
