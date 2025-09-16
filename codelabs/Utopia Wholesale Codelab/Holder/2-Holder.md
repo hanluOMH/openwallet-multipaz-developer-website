@@ -12,137 +12,25 @@ We will discuss how to create a credential and bind it to the document created a
 
 In App.kt
 
-### **Step 1: Establish validity times**
-```kotlin
-val now = Clock.System.now()
-
-val signedAt = now
-
-val validFrom = now
-
-val validUntil = now + 365.days
-```
-
-now is captured from the system clock. The credential is considered signed at signedAt, becomes valid at validFrom, and remains valid for 365 days (validUntil).
-
-### **Step 2: Add the IACA certificate**
-
-Get pre-generated Authority Certificate Authority (IACA) certificate and private_key ,the certificate will be shared to Verifier so holder will be in Verifier's issuer trust list
-```kotlin
-val iacaCert = X509Cert.fromPem(
-    Res.readBytes("files/iaca_certificate.pem").decodeToString().trimIndent().trim()
-)
-Logger.i(appName, iacaCert.toPem())
-val iacaKey = EcPrivateKey.fromPem(
-   Res.readBytes("files/iaca_private_key.pem").decodeToString().trimIndent().trim(),
-   iacaCert.ecPublicKey
-)
-
-```
-### **Step 3: Generate the DS certificate**
-
-“generateDsCertificate” issues a Document Signing (DS) certificate from the IACA key. Its parameters are:  
-```kotlin
-val dsKey = Crypto.createEcPrivateKey(EcCurve.P256)
-val dsCert = MdocUtil.generateDsCertificate(
-    iacaCert = iacaCert,
-    iacaKey = iacaKey, 
-    dsKey = dsKey.publicKey,
-    subject = X500Name.fromName(name = "CN=Test DS Key"),
-    serial = ASN1Integer.fromRandom(numBits = 128),
-    validFrom = validFrom,
-    validUntil = validUntil
-)
-```
-
-### **Step 4: Create the credential with sample data**
-
-“createMdocCredentialWithSampleData” adds an MdocCredential to the document using the specified secureArea.  
-```kotlin
-val mdocCredential =  
-    DrivingLicense.getDocumentType().createMdocCredentialWithSampleData(  
-        document = document,  
-        secureArea = secureArea,  
-        createKeySettings = CreateKeySettings(  
-            algorithm = Algorithm.ESP256,  
-            nonce = "Challenge".encodeToByteString(),  
-            userAuthenticationRequired = true  
-        ),  
-        dsKey = dsKey,  
-        dsCertChain = X509CertChain(listOf(dsCert)),  
-        signedAt = signedAt,  
-        validFrom = validFrom,  
-        validUntil = validUntil,  
-    )
-```
-
-### **Step 5: Start exporting credential**
-
-Now the credentials exist in your documents, however, they won't be accessible through  Android/ios credential manager system. In order to be accessed by the credential manager system, you need to export the credentials
-
-```kotlin
-if (DigitalCredentials.Default.available) {  
-//TODO:  DigitalCredentials.Default.startExportingCredentials(
-//                    documentStore = documentStore,
-//                    documentTypeRepository = documentTypeRepository*  
-//                )
-
-   DigitalCredentials.Default.startExportingCredentials(  
-       documentStore = documentStore,  
-       documentTypeRepository = documentTypeRepository  
-   )  
-}
-
-```
-
-
-### **Step 6: Add Verifier Certificate**
+### **Add Verifier Certificate**
 
 
 The Holder app also needs to add the Verifier (Reader) certificate to its trust list. This ensures that the Holder can recognize and trust the Verifier during credential sharing. The Verifier's certificate can be downloaded from the Multipaz Verifier [website](https://verifier.multipaz.org/identityreaderbackend/). Below is the code snippet demonstrating how to add the Verifier's certificate to the trust list:
 ```
-    try {
-            readerTrustManager.apply{
-                addX509Cert(
-                    certificate = X509Cert.fromPem(
-                        Res.readBytes("files/test_app_reader_root_certificate.pem").decodeToString().trimIndent().trim()
-                    ),
-                    metadata = TrustMetadata(
-                        displayName = "OWF Multipaz Test App Reader",
-                        displayIcon = null,
-                        privacyPolicyUrl = "https://apps.multipaz.org"
-                    )
-                )
-                addX509Cert(
-                    certificate = X509Cert.fromPem(
-                        Res.readBytes("files/reader_root_certificate.pem").decodeToString().trimIndent().trim(),
-                    ),
-                    metadata = TrustMetadata(
-                        displayName = "Multipaz Identity Reader (Trusted Devices)",
-                        displayIcon = null,
-                        privacyPolicyUrl = "https://apps.multipaz.org"
-                    )
-                )
-                addX509Cert(
-                    certificate = X509Cert.fromPem(
-                        Res.readBytes("files/reader_root_certificate_for_untrust_device.pem").decodeToString().trimIndent().trim(),
-                    ),
-                    metadata = TrustMetadata(
-                        displayName = "Multipaz Identity Reader (UnTrusted Devices)",
-                        displayIcon = null,
-                        privacyPolicyUrl = "https://apps.multipaz.org"
-                    )
-                )
+            try{
+                tm.apply {
+                //TODO: ADD X509Cert 
+                
+                }
+            } catch (e: TrustPointAlreadyExistsException) {
+                e.printStack()
             }
-        } catch (e: TrustPointAlreadyExistsException) {
-            e.printStackTrace()
-        }
 ```
 
 
 ---
 
-## **How to Generate a Certificate (Optional)**
+## **(Optional)How to Generate a Certificate**
 
 In above step "Add the IACA certificate" mentions `iaca_private_key` (iaca private key)and `iaca_Cert`(iaca certificate)
 This section shows how to generate your own iaca certificate and  iaca private key.
@@ -195,10 +83,16 @@ We will use components just like below
 In App.kt , initialize this model during app startup (if not already):
 
 ```kotlin
-// TODO: presentmentModel = PresentmentModel().apply { // setPromptModel(promptModel) }
-presentmentModel = PresentmentModel().apply {
-    setPromptModel(promptModel)
-}
+     suspend fun init() {
+        initLock.withLock {
+            if (initialized) {
+                return
+            }
+//some code implementation
+
+
+// TDDO: add provisioningModel
+        }
 ```
 
 
@@ -211,16 +105,11 @@ The `showQrButton()` composable sets up a UI button that begins the QR-code base
 
 ```kotlin
 private fun showQrButton(showQrCode: MutableState<ByteString?>) {
-    Button(onClick = {
-        presentmentModel.reset()
-        presentmentModel.setConnecting()
-        presentmentModel.presentmentScope.launch() {
-            ...
-        }
-    }) {
-        Text("Present mDL via QR")
-    }
-}
+fun ShowQrButton(onQrButtonClicked: (settings: MdocProximityQrSettings) -> Unit) {
+        val hasCredentials = remember { mutableStateOf<Boolean?>(null) }
+        val coroutineScope = rememberCoroutineScope { promptModel }
+        val uriHandler = LocalUriHandler.current
+        //some code implementation
 ```
 
 
@@ -242,15 +131,17 @@ Internally, this function:
 When `showQrButton()` triggers the connection, it calls `showQrCode()` to display a QR code representing the device engagement.
 
 ```kotlin
-private fun showQrCode(deviceEngagement: MutableState<ByteString?>) {
-    if (deviceEngagement.value != null) {
-        // TODO: val mdocUrl = "mdoc:" + deviceEngagement.value!!.toByteArray().toBase64Url()
-        val mdocUrl = "mdoc:" + deviceEngagement.value!!.toByteArray().toBase64Url()
+ private fun ShowQrCode(uri: String) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            val qrCodeBitmap = remember { generateQrCode(uri) }
+            // some code implementation
+        }
+ }
 
-        // TODO: qrCodeBitmap = remember { generateQrCode(mdocUrl) }
-        qrCodeBitmap = remember { generateQrCode(mdocUrl) }
-    }
-}
 ```
 
 
@@ -290,36 +181,6 @@ val connectionMethods = listOf(
 )
 ```
 
-This BLE transport is then advertised:
-
-```kotlin
-// TODO: advertisedTransports = connectionMethods.advertise(
-//                         role = MdocRole.MDOC,
-//                         transportFactory = MdocTransportFactory.Default,
-//                         options = MdocTransportOptions(bleUseL2CAP = true),
-//                     )
-
-val advertisedTransports = connectionMethods.advertise(
-    role = MdocRole.MDOC,
-    transportFactory = MdocTransportFactory.Default,
-    options = MdocTransportOptions(bleUseL2CAP = true),
-)
-```
-
-The device engagement includes connection methods for BLE/NFC and is shared as:
-
-```kotlin
-val engagementGenerator = EngagementGenerator(
-    eSenderKey = eDeviceKey.publicKey,
-    version = "1.0"
-)
-
-engagementGenerator.addConnectionMethods(advertisedTransports.map {
-    it.connectionMethod
-})
-```
-
-
 
 ### **Step 5: Sharing Credential Code by NFC (Android Only)**
 
@@ -338,20 +199,21 @@ This activity launches when the device is tapped against a verifier. It initiali
 _NfcActivity.kt_
 
 ```kotlin
-override fun ApplicationTheme(content: @Composable (() -> Unit)) {
-    content()
-}
-
-override suspend fun getSettings(): Settings {
-    val app = App.getInstance()
-    app.init()
-    return Settings(
-        appName = app.appName,
-        appIcon = app.appIcon,
-        promptModel = App.promptModel,
-        documentTypeRepository = app.documentTypeRepository,
-        presentmentSource = app.presentmentSource
-    )
+class NfcActivity : MdocNfcPresentmentActivity() {
+    override suspend fun getSettings(): Settings {
+        val app = App.getInstance()
+        app.init()
+        return Settings(
+            appName = app.appName,
+            appIcon = app.appIcon,
+            promptModel = App.promptModel,
+            applicationTheme = @Composable { content -> MaterialTheme { content() } },
+            documentTypeRepository = app.documentTypeRepository,
+            presentmentSource = app.presentmentSource,
+            imageLoader = ImageLoader.Builder(applicationContext)
+                .components { /* network loader omitted */ }.build(),
+        )
+    }
 }
 ```
 
@@ -364,7 +226,8 @@ NdefService extends from MdocNdefService(Base class for implementing NFC engagem
 
 _NdefService.kt_
 ```kotlin
-class NdefService : MdocNdefService() {
+class NdefService: MdocNdefService() {
+
     override suspend fun getSettings(): Settings {
         return Settings(
             sessionEncryptionCurve = EcCurve.P256,
@@ -372,11 +235,14 @@ class NdefService : MdocNdefService() {
             useNegotiatedHandover = true,
             negotiatedHandoverPreferredOrder = listOf(
                 "ble:central_client_mode:",
-                "ble:peripheral_server_mode:"
+                "ble:peripheral_server_mode:",
             ),
+            staticHandoverBleCentralClientModeEnabled = false,
+            staticHandoverBlePeripheralServerModeEnabled = false,
+            staticHandoverNfcDataTransferEnabled = false,
             transportOptions = MdocTransportOptions(bleUseL2CAP = true),
             promptModel = App.promptModel,
-            presentmentActivityClass = NfcActivity::class.java
+            presentmentActivityClass = NfcActivity::class.java,
         )
     }
 }
@@ -396,32 +262,7 @@ _AndroidManifest.xml_
     android:launchMode="singleInstance"
     android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
 
-<!-- TODO: Add this service
-<service
-    android:name=".NdefService"
-    android:exported="true"
-    android:label="@string/nfc_ndef_service_description"
-    android:permission="android.permission.BIND_NFC_SERVICE">
-    <intent-filter>
-        <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
-    </intent-filter>
-    <meta-data
-        android:name="android.nfc.cardemulation.host_apdu_service"
-        android:resource="@xml/nfc_ndef_service" />
-</service>
--->
-
-<service
-    android:name=".NdefService"
-    android:exported="true"
-    android:permission="android.permission.BIND_NFC_SERVICE">
-    <intent-filter>
-        <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
-    </intent-filter>
-    <meta-data
-        android:name="android.nfc.cardemulation.host_apdu_service"
-        android:resource="@xml/nfc_ndef_service" />
-</service>
+<!-- TODO: Add this NdefService-->
 
 ```
 

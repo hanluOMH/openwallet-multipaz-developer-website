@@ -85,6 +85,8 @@ ProvisioningSupport is a subclass of OpenID4VCIBackend, which is defined in the 
 
 #### **1.3 Examine Key Methods**
 
+In ProvisioningSupport.kt 
+
 **createJwtClientAssertion**:
 
 ```kotlin
@@ -123,31 +125,19 @@ This method includes the X.509 certificate in the JWT header to prove the wallet
 ### **Step 2: Understanding URL Processing**
 
 #### **Examine the URL Handler**
+In App.kt file
 
 ```kotlin
-fun handleUrl(url: String) {  
-    Logger.i(TAG, "handleUrl called with: $url")  
-      
-    if (url.startsWith(OID4VCI_CREDENTIAL_OFFER_URL_SCHEME) || url.startsWith(HAIP_URL_SCHEME)) {  
-        // Handle credential offer URLs  
-        Logger.i(TAG, "Starting OpenID4VCI provisioning with: $url")  
-        CoroutineScope(Dispatchers.Default).launch {  
-          //TODO:  credentialOffers.send(url)  
-        }  
-    } else if (url.startsWith(ProvisioningSupport.APP_LINK_BASE_URL)) {  
-        // Handle app link invocations (OAuth callbacks)  
-        Logger.i(TAG, "Processing app link invocation: $url")  
-        CoroutineScope(Dispatchers.Default).launch {  
-            try {  
-            //TODO:    provisioningSupport.processAppLinkInvocation(url)  
-            } catch (e: Exception) {  
-                Logger.e(TAG, "Error processing app link: ${e.message}", e)  
-            }  
-        }  
-    }  
-}
+     CoroutineScope(Dispatchers.Default).launch {
+                try {
+                    Logger.i(TAG, "handleUrl: About to process app link invocation")
+                    //TODO:    provisioningSupport.processAppLinkInvocation(url)
+                    Logger.i(TAG, "handleUrl: App link invocation processed successfully")
+                } catch (e: Exception) {
+                    Logger.e(TAG, "Error processing app link: ${e.message}", e)
+                }
+            }
 ```
-
 **Credential Offer URLs**: Start with openid-credential-offer:// or haip://
 
 ### **Step 3: Understanding the User Interface**
@@ -164,35 +154,40 @@ fun ProvisioningTestScreen(
 ) {  
     val provisioningState = provisioningModel.state.collectAsState(ProvisioningModel.Idle).value  
       
-    Column {  
-        // Navigation back button  
-        Row(  
-            modifier = Modifier.fillMaxWidth(),  
-            horizontalArrangement = Arrangement.Start  
-        ) {  
-            Text(  
-                modifier = Modifier  
-                    .padding(16.dp)  
-                    .clickable { onNavigateToMain() },  
-                text = "← Back",  
-                style = MaterialTheme.typography.bodyLarge,  
-                color = MaterialTheme.colorScheme.primary  
-            )  
-        }  
-          
-        // Display different states  
-        when (provisioningState) {  
-            is ProvisioningModel.Authorizing -> {  
-                Authorize(app, provisioningModel, provisioningState.authorizationChallenges, provisioningSupport)  
-            }  
-            is ProvisioningModel.Error -> {  
-                Text("Error: ${provisioningState.err.message}")  
-            }  
-            else -> {  
-/*TODO:   handle provisioningState */  
-            }  
-        }  
-    }  
+     Column {
+        Spacer(modifier = Modifier.height(100.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+           
+            Text(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { onNavigateToMain() },
+                text = "← Back",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        
+        if (provisioningState is ProvisioningModel.Authorizing) {
+            //Some code Implmentation
+        } else if (provisioningState is ProvisioningModel.Error) {
+            //Some code Implmentation
+        }else {
+             val text=""
+            //TODO: implement text
+            Text(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(8.dp),
+                style = MaterialTheme.typography.titleLarge,
+                text = text
+            )
+        }
+    }
 }
 ```
 
@@ -202,6 +197,8 @@ The UI observes the provisioning state using collectAsState()
 ### **Step 4: Understanding Authorization**
 
 #### **4.1 Authorization Handler**
+
+In ProvisioningTestScreen.kt
 
 ```kotlin
 @Composable  
@@ -252,7 +249,6 @@ fun EvidenceRequestWebView(
     val uriHandler = LocalUriHandler.current  
     LaunchedEffect(stableEvidenceRequest.url) {  
         Logger.i(EvidenceRequestWebView, "About to open browser with URL: ${stableEvidenceRequest.url}")  
-        // TODO: use Chrome Custom Tabs instead?  
         uriHandler.openUri(stableEvidenceRequest.url)  
         Logger.i(EvidenceRequestWebView, "Browser opened successfully")  
     }  
@@ -367,7 +363,7 @@ The codelab enables custom URI schemes out of the box. This intent filter matche
 
 **If you prefer to use HTTP App Links (more secure), see Option #2 in AndroidManifest.xml and complete the verification steps.**
 
-### **6 Set up your Own Credential Server(Optional)**
+### **6 (Optional)Set up your Own Credential Server**
 
 If you are setting up your own Credential server, the steps below will guide you through adding your app’s fingerprint.
 
