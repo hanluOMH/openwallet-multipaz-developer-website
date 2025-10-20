@@ -38,8 +38,8 @@ The screenshots below illustrate the provisioning process:
   <img src={require('@site/static/img/provision.png').default} alt="Provision" />
   <img src={require('@site/static/img/verify.png').default} alt="Verify" />
   <img src={require('@site/static/img/authorized.png').default} alt="Authorized" />
-  <img src={require('@site/static/img/preesent_mdl.png').default} alt="Present MDL" />
-  <img src={require('@site/static/img/dispaly_qr.png').default} alt="Display QR" />
+  <img src={require('@site/static/img/present_mdl.png').default} alt="Present MDL" />
+  <img src={require('@site/static/img/display_qr.png').default} alt="Display QR" />
 </div>
 
 
