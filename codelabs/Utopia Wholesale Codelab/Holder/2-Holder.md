@@ -282,7 +282,7 @@ _nfc_ndef_service.xml_
 ```
 ---
 
-Explanation of attributes:  
+In nfc_ndef_service.xml, the explanation of attributes:  
 - `android:requireDeviceUnlock`: `false` — app can respond even when locked  
 - `android:requireDeviceScreenOn`: `false` — screen can be off  
 - `aid-filter`: Identifies the NFC Type 4 Tag
