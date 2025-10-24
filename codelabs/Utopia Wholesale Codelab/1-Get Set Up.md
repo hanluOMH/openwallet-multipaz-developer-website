@@ -9,15 +9,13 @@ sidebar_position: 1
 Clone the codelab code using below command and open it **Android Studio**.
 
 ```shell
-git clone -b code-starter https://github.com/openmobilehub/multipaz-utopia-wholesale-codelab.git
+git clone -b code-starter https://github.com/openwallet-foundation/multipaz-samples.git
 ```
+The `code-starter` branch contains codelabs that guide you step by step through the programming process. It includes the Utopia Sample with TODO sections designed to help you understand and implement the Multipaz library.
 
-The `sample-refactor` branch contains several folders, such as `Issuance` and `Storage` and others, which guide you through the programming process step by step.
-
-To view the completed codelab, you can clone the repository(main branch) from the link below:
-
+To view the completed version of the codelab, clone the main branch from the repository link below. The main branch contains the fully runnable code for the Utopia Sample.
 ```shell
-git clone https://github.com/openmobilehub/multipaz-utopia-wholesale-codelab.git
+git clone https://github.com/openwallet-foundation/multipaz-samples.git
 ```
 
 ## 
