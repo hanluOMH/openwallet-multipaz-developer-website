@@ -79,6 +79,7 @@ val OPENID4VCI_CLIENT_PREFERENCES = OpenID4VCIClientPreferences(
 ```
 
 ProvisioningSupport is a subclass of OpenID4VCIBackend, which is defined in the Multipaz library. ProvisioningSupport class is the bridge between your wallet and credential issuers. It handles authentication, authorization, and secure communication.
+Here creates an OPENID4VCI_CLIENT_PREFERENCES object, which defines configuration parameters such as clientId, redirectUrl, locals, and signingAlgorithms. The OPENID4VCI_CLIENT_PREFERENCES is then used when calling launchOpenID4VCIProvisioning.
 
 #### **1.3 Examine Key Methods**
 
@@ -98,18 +99,6 @@ val head = buildJsonObject {
 
 This method creates a JWT header with the signing algorithm and key ID.
 
-
-```kotlin
-//TODO: implement OpenID4VCI_CLIENT_PREFERENCES
-val OPENID4VCI_CLIENT_PREFERENCES = OpenID4VCIClientPreferences(
-            clientId = CLIENT_ID,
-            redirectUrl = APP_LINK_BASE_URL,
-            locales = listOf("en-US"),
-            signingAlgorithms = listOf(Algorithm.ESP256, Algorithm.ESP384, Algorithm.ESP512)
-        )
-```
-Here creates an OPENID4VCI_CLIENT_PREFERENCES object, which defines configuration parameters such as clientId, redirectUrl, locals, and signingAlgorithms. The OPENID4VCI_CLIENT_PREFERENCES is then used when calling launchOpenID4VCIProvisioning.
-
 ### **Step 2: Understanding URL Processing**
 
 #### **Examine the URL Handler**
@@ -125,7 +114,7 @@ During provisioning, the app receives a URL from the server, and the client must
 
 ### **Step 3: Understanding the User Interface**
 
-#### **Provisioning Screen**
+#### **ProvisioningTestScreen.kt**
 
 ```kotlin   
 //TODO: update text depends on provisioningState

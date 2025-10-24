@@ -14,9 +14,9 @@ To address these limitations, the **OpenWallet Foundation Labs** created the **I
 
 This project provides:
 
-* A Kotlin/Android library for mobile wallets to issue and present credentials.
+* A KMP library for mobile wallets to issue and present credentials.
 
-* A server library for issuing credentials.
+* Server components for issuing and verifying digital credentials.
 
 In this codelab, you’ll build a minimal end-to-end Verifiable Credential flow using Identity Credential components. You’ll create a Utopia app that first issues a credential from the server, then securely stores it on the mobile device, and finally shares it with a verifier app via QR code or NFC for verification.
 
