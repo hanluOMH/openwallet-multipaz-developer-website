@@ -16,7 +16,7 @@ In this section (Storage folder), you’ll set up the components needed to manag
 
 * `SecureAreaRepository`: A registry of available `SecureArea` implementations, it controls for “SecureArea” implementation 
 
-* `DocumentStore`: ​​Class for storing real-world identity documents.
+* `DocumentStore`: A Class for storing real-world identity documents.
 
 We’ll guide you through integrating and initializing these components in your KMP app.
 

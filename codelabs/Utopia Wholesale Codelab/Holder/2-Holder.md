@@ -15,7 +15,7 @@ We will discuss how to create a credential and bind it to the document created a
 
 
 The Holder app also needs to add the Verifier (Reader) certificate to its trust list. This ensures that the Holder can recognize and trust the Verifier during credential sharing. The Verifier's certificate can be downloaded from the Multipaz Verifier [website](https://verifier.multipaz.org/identityreaderbackend/). Below is the code snippet demonstrating how to add the Verifier's certificate to the trust list,In App.kt:
-```
+```kotlin
 //TODO: Add X509Cert
 addX509Cert(
     certificate = X509Cert.fromPem(
@@ -108,7 +108,7 @@ We will use components just like below
 In App.kt , initialize this model during app startup (if not already):
 
 ```kotlin
-// TDDO: add provisioningModel
+// TODO: add provisioningModel
 provisioningModel = ProvisioningModel(
     documentStore = documentStore,
     secureArea = Platform.getSecureArea(),

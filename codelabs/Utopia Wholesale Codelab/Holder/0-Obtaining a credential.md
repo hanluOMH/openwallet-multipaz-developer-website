@@ -8,6 +8,7 @@ sidebar_position: 0
 
 This codelab teaches you how to implement OpenID4VCI (OpenID Connect for Verifiable Credential Issuance) in a Kotlin Multiplatform mobile wallet application. You'll build a working wallet that can receive and store digital credentials like Utopia membership.
 
+The issuer.multipaz.org server is just for testing, you can create your own server for production use. You can refer to the [source code](https://github.com/openwallet-foundation/multipaz/tree/main/multipaz-openid4vci-server) for more info
 **Architecture Overview**
 
 
@@ -23,7 +24,7 @@ The screenshots below illustrate the provisioning process:
 
 - Complete the Provisioning step
 
-- On the Verification Page, select the person
+- On the Verification Page, select the person(In our app, please select  "Lee Tom")
 
 - The Credential is issued
 
@@ -58,7 +59,7 @@ Identity credential provisioning is the process of securely issuing digital cred
 
 #### **1.1 Explore the Project Structure**
 
-First, set your project’s **“android:launchMode="singleInstance"** to prevent unnecessary recompositions, which may otherwise break the issuance process.
+First, set your project’s `android:launchMode="singleInstance`  in `AndroidManifest.xml` to prevent unnecessary recompositions, which may otherwise break the issuance process.
 
 **Look for these key files**:
 
@@ -78,7 +79,9 @@ val OPENID4VCI_CLIENT_PREFERENCES = OpenID4VCIClientPreferences(
 
 ```
 
-ProvisioningSupport is a subclass of OpenID4VCIBackend, which is defined in the Multipaz library. ProvisioningSupport class is the bridge between your wallet and credential issuers. It handles authentication, authorization, and secure communication.
+`ProvisioningSupport` is a subclass of `OpenID4VCIBackend`, which is defined in the Multipaz library. `ProvisioningSupport` class is the bridge between your wallet and credential issuers. It handles authentication, authorization, and secure communication.
+
+Here we creates an `OPENID4VCI_CLIENT_PREFERENCES` object, which defines configuration parameters such as `clientId`, `redirectUrl`, `locals`, and `signingAlgorithms`. The `OPENID4VCI_CLIENT_PREFERENCES` is then used when calling `launchOpenID4VCIProvisioning`.
 
 #### **1.3 Examine Key Methods**
 
@@ -98,18 +101,6 @@ val head = buildJsonObject {
 
 This method creates a JWT header with the signing algorithm and key ID.
 
-
-```kotlin
-//TODO: implement OpenID4VCI_CLIENT_PREFERENCES
-val OPENID4VCI_CLIENT_PREFERENCES = OpenID4VCIClientPreferences(
-            clientId = CLIENT_ID,
-            redirectUrl = APP_LINK_BASE_URL,
-            locales = listOf("en-US"),
-            signingAlgorithms = listOf(Algorithm.ESP256, Algorithm.ESP384, Algorithm.ESP512)
-        )
-```
-Here creates an OPENID4VCI_CLIENT_PREFERENCES object, which defines configuration parameters such as clientId, redirectUrl, locals, and signingAlgorithms. The OPENID4VCI_CLIENT_PREFERENCES is then used when calling launchOpenID4VCIProvisioning.
-
 ### **Step 2: Understanding URL Processing**
 
 #### **Examine the URL Handler**
@@ -125,7 +116,7 @@ During provisioning, the app receives a URL from the server, and the client must
 
 ### **Step 3: Understanding the User Interface**
 
-#### **Provisioning Screen**
+#### **ProvisioningTestScreen.kt**
 
 ```kotlin   
 //TODO: update text depends on provisioningState
@@ -194,6 +185,7 @@ It launches the external browser instead and manages the OAuth flow through app 
 The APP\_LINK\_SERVER is a critical component that enables OAuth callback handling through Android App Links. This section explains how it works and how to configure it properly.
 
 #### **5.1 What is APP\_LINK\_SERVER?**
+Defautly we are using Custom URL scheme rather than HTTP App Links.
 
 The APP\_LINK\_SERVER serves as the **OAuth callback endpoint** for your credential provisioning flow. It's the URL where the external browser redirects after the user completes OAuth authentication.
 
@@ -210,27 +202,16 @@ companion object Companion {
 }
 ```
 
-By default, since your app’s fingerprint has not been uploaded to apps.multipaz.org, app links from the website cannot be handled by the app and will instead open in the browser. To enable the app to handle these links, follow these steps:
+If you use HTTP App Links in your app, since your app's fingerprint has not been uploaded to "apps.multipaz.org" website), app links from the website cannot be handled by the app and will instead open in the browser. 
+You have to register your app’s fingerprint  on the Multipaz server(or your own website). If you app's fingerprint is registered successfully. Long click you app and click  **App Info → Open by default**, you will see "1 verified Link" just like below
+<img src={require('@site/static/img/open_by_default.png').default} alt="DCQL Example" width="50%" height="50%" />
 
-**App Info → Open by default → Add Link → select “apps.multipaz.org Opens in Multipaz Test App.”(Different devices may display different)**
+If you click "1 verified link", you will see apps.multipaz.org(or your website link) is verified just like below:
 
-If your app’s fingerprint is not registered on the Multipaz server and you haven’t completed the above steps, you will see the error message: **“The request URL was not found on the server.”**
+<img src={require('@site/static/img/verified_link.png').default} alt="DCQL Example" width="50%" height="50%" />
 
-##### Default Configuration in `AndroidManifest.xml`
+For more Verify App Links knowledge you check official [documentation](https://developer.android.com/training/app-links/verify-applinks).
 
-```xml
-<!-- Option #1 - Custom URI Scheme (default) -->  
-<!-- Must match ApplicationSupportLocal.APP_LINK_SERVER -->  
-<intent-filter>  
-    <action android:name="android.intent.action.VIEW" />  
-    <category android:name="android.intent.category.DEFAULT" />  
-    <category android:name="android.intent.category.BROWSABLE" />  
-    <data android:scheme="wholesale-test-app"/>  
-    <data android:host="landing"/>  
-</intent-filter>
-```
-
-**If you prefer to use HTTP App Links (more secure), see Option #2 in AndroidManifest.xml and complete the verification steps.**
 
 #### **5.2 Android Manifest Configuration**
 
@@ -266,7 +247,7 @@ The codelab enables custom URI schemes out of the box. This intent filter matche
             </intent-filter>-->
 ```
 
-**If you prefer to use HTTP App Links (more secure), see Option #2 in AndroidManifest.xml and complete the verification steps.**
+**Above code in AndroidManifest.xml explains the Custom URI(option 1) and HTTPS App Links (Option 2)**
 
 ### **Step 6 (Optional)Set up your Own Credential Server**
 
