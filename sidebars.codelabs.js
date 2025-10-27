@@ -55,7 +55,8 @@
             type: 'category',
             label: 'Advanced Features',
             items: [
-              'Utopia Wholesale Codelab/Advanced Features/W3C DC API Implementation'
+              'Utopia Wholesale Codelab/Advanced Features/W3C DC API Implementation',
+              'Utopia Wholesale Codelab/Advanced Features/Request Multiple Credentials with DCQL'
             ],
             collapsed: false,
             collapsible: true,
