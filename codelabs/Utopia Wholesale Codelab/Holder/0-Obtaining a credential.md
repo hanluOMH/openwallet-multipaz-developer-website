@@ -32,15 +32,15 @@ The screenshots below illustrate the provisioning process:
 
 - The QR code is displayed
 <div className="image-grid">
-  <img src={require('@site/static/img/start.png').default} alt="Start" />
-  <img src={require('@site/static/img/issuer.png').default} alt="Issuer" />
-  <img src={require('@site/static/img/select_credential.png').default} alt="Select Credential" />
-  <img src={require('@site/static/img/customize_scheme.png').default} alt="Customize Scheme" />
-  <img src={require('@site/static/img/provision.png').default} alt="Provision" />
-  <img src={require('@site/static/img/verify.png').default} alt="Verify" />
-  <img src={require('@site/static/img/authorized.png').default} alt="Authorized" />
-  <img src={require('@site/static/img/present_mdl.png').default} alt="Present MDL" />
-  <img src={require('@site/static/img/display_qr.png').default} alt="Display QR" />
+  <img src={require('@site/static/img/start.png').default} alt="Start" style={{width: '85%', height: '85%'}} />
+  <img src={require('@site/static/img/issuer.png').default} alt="Issuer" style={{width: '85%', height: '85%'}} />
+  <img src={require('@site/static/img/select_credential.png').default} alt="Select Credential" style={{width: '85%', height: '85%'}} />
+  <img src={require('@site/static/img/customize_scheme.png').default} alt="Customize Scheme" style={{width: '85%', height: '85%'}} />
+  <img src={require('@site/static/img/provision.png').default} alt="Provision" style={{width: '85%', height: '85%'}} />
+  <img src={require('@site/static/img/verify.png').default} alt="Verify" style={{width: '85%', height: '85%'}} />
+  <img src={require('@site/static/img/authorized.png').default} alt="Authorized" style={{width: '85%', height: '85%'}} />
+  <img src={require('@site/static/img/present_mdl.png').default} alt="Present MDL" style={{width: '85%', height: '85%'}} />
+  <img src={require('@site/static/img/display_qr.png').default} alt="Display QR" style={{width: '85%', height: '85%'}} />
 </div>
 
 
@@ -204,11 +204,11 @@ companion object Companion {
 
 If you use HTTP App Links in your app, since your app's fingerprint has not been uploaded to "apps.multipaz.org" website), app links from the website cannot be handled by the app and will instead open in the browser. 
 You have to register your app’s fingerprint  on the Multipaz server(or your own website). If you app's fingerprint is registered successfully. Long click you app and click  **App Info → Open by default**, you will see "1 verified Link" just like below
-<img src={require('@site/static/img/open_by_default.png').default} alt="DCQL Example" width="50%" height="50%" />
+<img src={require('@site/static/img/open_by_default.png').default} alt="DCQL Example" style={{width: '20%', height: '20%'}} />
 
 If you click "1 verified link", you will see apps.multipaz.org(or your website link) is verified just like below:
 
-<img src={require('@site/static/img/verified_link.png').default} alt="DCQL Example" width="50%" height="50%" />
+<img src={require('@site/static/img/verified_link.png').default} alt="DCQL Example" style={{width: '20%', height: '20%'}} />
 
 For more Verify App Links knowledge you check official [documentation](https://developer.android.com/training/app-links/verify-applinks).
 

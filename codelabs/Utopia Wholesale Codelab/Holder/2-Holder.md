@@ -55,10 +55,9 @@ addX509Cert(
 
 ---
 
-## **(Optional)How to Generate a Certificate**
+## **(Optional) How to Generate a Certificate**
 
-In above step "Add the IACA certificate" mentions `iaca_private_key` (iaca private key)and `iaca_Cert`(iaca certificate)
-This section shows how to generate your own iaca certificate and  iaca private key.
+In above step "Verifier (Reader) certificate" mentions certificate. This section shows how to generate your own iaca certificate and  iaca private key.
 
 ### Step 1: Add `multipazctl` to Your System Path
 
@@ -76,7 +75,7 @@ multipazctl generateIaca
 ```
 
 This will generate:
-- `iaca_certificate.pem` — used by the Verifier (contains the public key)
+- `iaca_certificate.pem` — the certificate (contains the public key)
 - `iaca_private_key.pem` — private key
 
 
@@ -230,15 +229,34 @@ app.init()
 This activity wakes the device if necessary and securely presents credentials.
 
 
-2. Define NdefService.kt (Engagement Settings)
+2. Define `NdefService.kt` (Engagement Settings)
 
-NdefService extends from MdocNdefService(Base class for implementing NFC engagement according to ISO/IEC 18013-5:2021.)
+`NdefService` extends from `MdocNdefService`(Base class for implementing NFC engagement according to ISO/IEC 18013-5:2021.)
 
-In _NdefService.kt_ `negotiatedHandoverPreferredOrder` is set to select BLE. In this case, NFC establishes the initial connection. No credential data is transferred at this stage. The NFC connection is used to negotiate which transport method to use. Since BLE is selected, a BLE connection is established, and credentials are shared over BLE.
+In _NdefService.kt_ 
+```kotlin
+Settings(
+            sessionEncryptionCurve = settingsModel.presentmentSessionEncryptionCurve.value,
+            allowMultipleRequests = settingsModel.presentmentAllowMultipleRequests.value,
+            useNegotiatedHandover = settingsModel.presentmentUseNegotiatedHandover.value,
+            negotiatedHandoverPreferredOrder = settingsModel.presentmentNegotiatedHandoverPreferredOrder.value,
+            staticHandoverBleCentralClientModeEnabled = settingsModel.presentmentBleCentralClientModeEnabled.value,
+            staticHandoverBlePeripheralServerModeEnabled = settingsModel.presentmentBlePeripheralServerModeEnabled.value,
+            staticHandoverNfcDataTransferEnabled = settingsModel.presentmentNfcDataTransferEnabled.value,
+            transportOptions = MdocTransportOptions(
+                bleUseL2CAP = settingsModel.presentmentBleL2CapEnabled.value,
+                bleUseL2CAPInEngagement = settingsModel.presentmentBleL2CapInEngagementEnabled.value
+            ),
+            promptModel = App.promptModel,
+            presentmentActivityClass = NfcActivity::class.java
+        )
+```
+`negotiatedHandoverPreferredOrder` is set to select BLE. In this case, NFC establishes the initial connection. No credential data is transferred at this stage. The NFC connection is used to negotiate which transport method to use. Since BLE is selected, a BLE connection is established, and credentials are shared over BLE.
 
-Configure AndroidManifest.xml:Add NFC capabilities and link your NfcActivity and NdefService in AndroidManifest.xml
+Configure `AndroidManifest.xml`:Add NFC capabilities and link your `NfcActivity` and `NdefService` in `AndroidManifest.xml`
 
-_AndroidManifest.xml_
+_`AndroidManifest.xml`_
+
 ```xml
 <!-- TODO: Add this NdefService-->
 <service
