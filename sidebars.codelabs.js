@@ -44,7 +44,6 @@
             label: 'Verifier',
             items: [
               'Utopia Wholesale Codelab/Verifier/Verifier',
-              'Utopia Wholesale Codelab/Verifier/BLE and Camera Permission',
               'Utopia Wholesale Codelab/Verifier/Verification Modes',
               'Utopia Wholesale Codelab/Verifier/How to Import a Certificate'
             ],
