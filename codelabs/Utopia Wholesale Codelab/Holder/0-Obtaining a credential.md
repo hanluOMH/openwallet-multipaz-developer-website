@@ -59,13 +59,69 @@ Identity credential provisioning is the process of securely issuing digital cred
 
 #### **1.1 Explore the Project Structure**
 
-First, set your project’s `android:launchMode="singleInstance`  in `AndroidManifest.xml` to prevent unnecessary recompositions, which may otherwise break the issuance process.
+**Project Structure Overview**
 
-**Look for these key files**:
+The following directory structure shows the key files and folders in the `composeApp/src/commonMain/` directory:
 
-* ProvisioningSupport.kt \- Core backend implementation  
-* App.kt \- Main application class  
-* ProvisioningTestScreen.kt \- UI for provisioning
+```text
+composeApp/src/commonMain/
+├── kotlin/
+│   └── org/multipaz/samples/wallet/cmp/
+│       ├── ui/                          # UI Components
+│       │   ├── AccountScreen.kt
+│       │   ├── ProvisioningTestScreen.kt
+│       │   ├── Explore.kt
+│       │   ├── Membership.kt
+│       │   └── HomeScreen.kt
+│       ├── di/                          # Dependency Injection
+│       │   ├── InitKoin.kt
+│       │   └── MultipazModule.kt
+│       ├── util/                        # Utilities
+│       │   ├── AppSettingsModel.kt
+│       │   ├── ProvisioningSupport.kt
+│       │   ├── DocumentStoreExtensions.kt
+│       │   ├── TestAppUtils.kt
+│       │   └── Constants.kt
+│       └── UtopiaSampleApp.kt          # Main app entry
+└── composeResources/                    # Shared resources
+    ├── drawable/                        # Images
+    └── files/                           # Files (certificates, etc.)
+        └── test_app_reader_root_certificate.pem
+```
+
+**Android-specific structure:**
+
+```text
+composeApp/src/androidMain/
+├── kotlin/
+│   └── org/multipaz/samples/wallet/cmp/
+│       ├── MainActivity.kt              # Main activity
+│       ├── NfcActivity.kt               # NFC handling
+│       ├── CredmanActivity.kt           # Credential manager
+│       ├── NdefService.kt               # NDEF message service
+│       └── UtopiaSampleApplication.kt   # Application class
+├── res/                                 # Android resources
+│   ├── drawable/                        # Drawables
+│   ├── drawable-v24/                    # API 24+ drawables
+│   ├── mipmap-*/                        # App icons
+│   ├── values/                          # Values (strings, colors)
+│   └── xml/                             # XML configs
+├── assets/                              # Android assets
+└── AndroidManifest.xml                  # Manifest file
+```
+
+**iOS-specific structure:**
+
+```text
+composeApp/src/iosMain/
+└── kotlin/
+    └── org/multipaz/samples/wallet/cmp/
+        └── MainViewController.kt        # Main view controller
+```
+
+:::note
+First, set your project's `android:launchMode="singleInstance"` in `AndroidManifest.xml` to prevent unnecessary recompositions, which may otherwise break the issuance process.
+:::
 
 #### **1.2 Understand the ProvisioningSupport Class**
 ```kotlin
@@ -104,15 +160,16 @@ This method creates a JWT header with the signing algorithm and key ID.
 ### **Step 2: Understanding URL Processing**
 
 #### **Examine the URL Handler**
-In App.kt file
+In `composeApp/src/androidMain/.../MainActivity.kt`, URL routing is handled inside the `FragmentActivity`. The activity receives intents (credential offers, app links, custom schemes), inspects their URLs, and forwards them to the appropriate Multipaz components via Koin-injected dependencies:
 
 ```kotlin
-//TODO:    call processAppLinkInvocation(url)
+//TODO: call processAppLinkInvocation(url)
 provisioningSupport.processAppLinkInvocation(url)
 ```
-**Credential Offer URLs**: Start with openid-credential-offer:// or haip://
 
-During provisioning, the app receives a URL from the server, and the client must perform specific processing based on that URL.
+**Credential Offer URLs**: begin with `openid-credential-offer://` or `haip://`
+
+During provisioning, the app receives a URL from the server, and the client must perform specific processing based on that URL. `MainActivity` now centralizes this logic: credential-offer schemes are forwarded to the Compose UI through `credentialOffers`, while app links are passed to `ProvisioningSupport.processAppLinkInvocation(...)` inside a coroutine.
 
 ### **Step 3: Understanding the User Interface**
 
@@ -121,16 +178,16 @@ During provisioning, the app receives a URL from the server, and the client must
 ```kotlin   
 //TODO: update text depends on provisioningState
 val text = when (provisioningState) {
-             ProvisioningModel.Idle -> "Initializing..."
-             ProvisioningModel.Idle -> "Starting provisioning..."
-             ProvisioningModel.Connected -> "Connected to the back-end"
-             ProvisioningModel.ProcessingAuthorization -> "Processing authorization..."
-             ProvisioningModel.ProcessingAuthorization -> "Authorized"
-             ProvisioningModel.RequestingCredentials -> "Requesting credentials..."
-             ProvisioningModel.CredentialsIssued -> "Credentials issued"
-             is ProvisioningModel.Error -> throw IllegalStateException()
-             is ProvisioningModel.Authorizing -> throw IllegalStateException()
-         }
+            ProvisioningModel.Idle -> "Initializing..."
+            ProvisioningModel.Initial -> "Starting provisioning..."
+            ProvisioningModel.Connected -> "Connected to the back-end"
+            ProvisioningModel.ProcessingAuthorization -> "Processing authorization..."
+            ProvisioningModel.Authorized -> "Authorized"
+            ProvisioningModel.RequestingCredentials -> "Requesting credentials..."
+            ProvisioningModel.CredentialsIssued -> "Credentials issued"
+            is ProvisioningModel.Error -> throw IllegalStateException()
+            is ProvisioningModel.Authorizing -> throw IllegalStateException()
+        }
          Text(
              modifier = Modifier
                  .align(Alignment.CenterHorizontally)
