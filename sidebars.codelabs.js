@@ -55,7 +55,8 @@
             label: 'Advanced Features',
             items: [
               'Utopia Wholesale Codelab/Advanced Features/W3C DC API Implementation',
-              'Utopia Wholesale Codelab/Advanced Features/Request Multiple Credentials with DCQL'
+              'Utopia Wholesale Codelab/Advanced Features/Request Multiple Credentials with DCQL',
+              'Utopia Wholesale Codelab/Advanced Features/Deploying to Google Cloud Run'
             ],
             collapsed: false,
             collapsible: true,
