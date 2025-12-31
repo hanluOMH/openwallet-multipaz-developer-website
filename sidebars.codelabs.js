@@ -45,7 +45,7 @@
             items: [
               'Utopia Wholesale Codelab/Verifier/Verifier',
               'Utopia Wholesale Codelab/Verifier/Verification Modes',
-              'Utopia Wholesale Codelab/Verifier/How to Import a Certificate'
+              'Utopia Wholesale Codelab/Verifier/Testing Holder'
             ],
             collapsed: false,
             collapsible: true,
