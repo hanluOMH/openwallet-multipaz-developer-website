@@ -77,6 +77,12 @@ single<TrustManager> {
             privacyPolicyUrl = "https://apps.multipaz.org"
         )
 
+        addCertificateIfNotExists(
+            certPath = "files/reader_root_cert_multipaz_web_verifier.pem",
+            displayName = "Multipaz Web Verifier",
+            privacyPolicyUrl = "https://verifier.multipaz.org",
+        )
+
         trustManager
     }
 }
