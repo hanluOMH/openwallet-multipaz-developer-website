@@ -139,7 +139,7 @@ The allowlist includes:
 * **Edge variants**: com.microsoft.emmx, com.microsoft.emmx.beta, com.microsoft.emmx.dev  
 * **Other browsers**: Brave, Vivaldi, Yandex, DuckDuckGo, Samsung Internet  
 * **System apps**: Google Play Services, Android Browser
-
+`
 ### **Step 4: Understanding W3C DC API Integration**
 
 #### **4.1 DigitalCredentials.Default Integration**
@@ -150,23 +150,32 @@ The core W3C DC API integration happens in your App.kt initialization:
 
 1. **Web Verifier Request**: A web application requests credentials using W3C DC API  
 2. **Android System Routing**: Android routes the request to your CredmanActivity  
-3. **Credential Discovery**: The system discovers available credentials through DigitalCredentials.Default  
+3. **Credential Discovery**: The system discovers available credentials through the registered document store  
 4. **User Authorization**: User sees a prompt to authorize credential sharing  
 5. **Credential Selection**: User chooses which credentials to share  
 6. **Secure Presentation**: Credentials are securely presented to the verifier via W3C DC API
 
-#### **4.2 Integration with Document Store**
+#### **4.2 Integration with Document Store and Registration Manager**
 
-The W3C DC API integration leverages your existing credential infrastructure:  
-In App.kt initialization
+The W3C DC API integration leverages your existing credential infrastructure with proper registration refresh to fix verification glitches.
 
 ```kotlin
-// TODO: add startExportingCredentials feature,credentials are exported to W3C DC API
-DigitalCredentials.Default.startExportingCredentials(
+// TODO: Register DC API with documents from document store
+digitalCredentials.register(
     documentStore = documentStore,
-    documentTypeRepository = documentTypeRepository
+    documentTypeRepository = documentTypeRepository,
+    selectedProtocols = settingsModel.dcApiProtocols.value,
 )
 ```
+
+**What this does:** Registers all documents in documentStore with the W3C Digital Credentials API provider for the platform.
+
+For credentials to be available via W3C DC API, they must be registered with the Android system. This is handled by the `DigitalCredentialsRegistrationManager`.
+
+The registration manager ensures credentials are refreshed:
+* When the app starts
+* After credential issuance
+* When returning from the provisioning screen
 
 ### **Step 6: Testing the Implementation**
 
