@@ -20,7 +20,7 @@ In your Koin module (`MultipazModule.kt`), configure the `TrustManager` to add t
 ```kotlin
 //TODO: define TrustManager in Koin module
 single<TrustManager> {
-    val trustManager = TrustManagerLocal(storage = get(), identifier = "reader")
+    val trustManager = TrustManager(storage = get(), identifier = "reader")
 
     runBlocking {
         suspend fun addCertificateIfNotExists(
@@ -43,7 +43,7 @@ single<TrustManager> {
                     )
                 )
                 Logger.i("TrustManager", "Successfully added certificate: $displayName")
-            } catch (e: TrustPointAlreadyExistsException) {
+            } catch (e: TrustEntryAlreadyExistsException) {
                 Logger.e(
                     "TrustManager",
                     "Certificate already exists: $displayName",
