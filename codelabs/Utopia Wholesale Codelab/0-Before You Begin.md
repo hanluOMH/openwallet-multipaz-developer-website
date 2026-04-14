@@ -53,7 +53,7 @@ In this codelab, you’ll build a minimal end-to-end Verifiable Credential flow 
 
 ## **What you’ll need**
 
-* An Android device or emulator (API level 26 or higher)
+* An Android device or emulator (API level 29 or higher)
 
 * [Android Studio Hedgehog (2023.1.1)+](https://developer.android.com/studio) or Newer Android Studio
 
