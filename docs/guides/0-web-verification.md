@@ -43,54 +43,53 @@ The W3C DC API integration allows your app to interact with web-based verifiers 
 
 ## **Implementation Steps**
 
-### **1. Dependencies**
+### **1. Prerequisites**
 
-We would need to add the Multipaz DC API library for the Digital Credentials implementation.
+This guide builds on top of the completed [Getting Started](/docs/getting-started) app. Make sure you have followed the full Getting Started guide first. The Multipaz DC API library (`multipaz-dcapi`) is required for this feature.
 
 `gradle/libs.versions.toml`
 ```toml
-[versions]
-multipaz = "0.97.0" # latest version of Multipaz Extras
-
 [libraries]
 multipaz-dcapi = { group = "org.multipaz", name = "multipaz-dcapi", version.ref = "multipaz" }
 ```
 
-Refer to **[this code](https://github.com/openwallet-foundation/multipaz-samples/blob/0ee75e993114b37a586abcc68a72f0b21e700ee9/MultipazGettingStartedSample/gradle/libs.versions.toml#L45)** for the complete example.
+Refer to **[this libs.versions.toml code](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/gradle/libs.versions.toml#L45)** for the complete example.
 
-`composeApp/build.gradle.kts`
+* Add the dependency to the `:core` module's `build.gradle.kts` file:
+
 ```kotlin
+// core/build.gradle.kts
 kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            // ...
-            implementation(libs.multipaz.vision)
-        }
-    }
+   sourceSets {
+       commonMain.dependencies {
+           // ... other dependencies 
+          implementation(libs.multipaz.dcapi)
+       }
+   }
 }
 ```
 
-Refer to **[this code](https://github.com/openwallet-foundation/multipaz-samples/blob/0ee75e993114b37a586abcc68a72f0b21e700ee9/MultipazGettingStartedSample/composeApp/build.gradle.kts#L60)** for the complete example.
+Refer to **[this code](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/core/build.gradle.kts#L37)** for the complete example.
 
 ### **2. Add CredmanActivity**
 
 Create a new activity extending `CredentialManagerPresentmentActivity `provided by Multipaz. This activity is launched when a browser requests credentials via the W3C DC API.
 
 ```kotlin
-// kotlin/CredmanActivity.kt
+// composeApp/../kotlin/CredmanActivity.kt
 class CredmanActivity : CredentialManagerPresentmentActivity() {
     override suspend fun getSettings(): Settings {
-        val app = App.getInstance()
-        app.init()
+        val container = AppContainer.getInstance()
+        container.init()
         return Settings(
-            source = app.presentmentSource,
+            source = container.presentmentSource,
             privilegedAllowList = Res.readBytes("files/privilegedUserAgents.json").decodeToString()
         )
     }
 }
 ```
 
-Refer to **[**the CredmanActivity file**](https://github.com/openwallet-foundation/multipaz-samples/blob/0ee75e993114b37a586abcc68a72f0b21e700ee9/MultipazGettingStartedSample/composeApp/src/androidMain/kotlin/org/multipaz/getstarted/CredmanActivity.kt)** for the complete example.
+Refer to [**the CredmanActivity file**](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/composeApp/src/androidMain/kotlin/org/multipaz/getstarted/CredmanActivity.kt) for the complete example.
 
 ### **3. Update AndroidManifest.xml**
 
@@ -115,7 +114,7 @@ Register `CredmanActivity` in your manifest and declare intent filters for the C
 
 * This registers your app as a credential provider for browser and web app requests using the W3C DC API.
 
-Refer to the [**sample Manifest code**](https://github.com/openwallet-foundation/multipaz-samples/blob/0ee75e993114b37a586abcc68a72f0b21e700ee9/MultipazGettingStartedSample/composeApp/src/androidMain/AndroidManifest.xml#L120-L132) for context.
+Refer to the [**sample Manifest code**](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/composeApp/src/androidMain/AndroidManifest.xml#L120-L132) for context.
 
 ### **4. Add Privileged User Agents JSON**
 
@@ -149,48 +148,51 @@ Create a JSON file listing all trusted browser apps and their signature fingerpr
 * Defines which browsers and apps can be trusted when requesting credentials from your app.
 * Warns about untrusted applications/websites when they try to access sensitive credential data.
 
-Refer to [**the full `privilegedUserAgents.json` file**](https://github.com/openwallet-foundation/multipaz-samples/blob/0ee75e993114b37a586abcc68a72f0b21e700ee9/MultipazGettingStartedSample/composeApp/src/commonMain/composeResources/files/privilegedUserAgents.json) for a complete list.
+Refer to [**the full `privilegedUserAgents.json` file**](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/composeApp/src/commonMain/composeResources/files/privilegedUserAgents.json) for a complete list.
 
 ### **5. Register Digital Credentials**
 
 Modify your app's initialization to register credentials if Digital Credentials are available, and re-register when the document store changes.
 
+In the modularized sample, digital credentials registration is handled inside `AppContainerImpl` in the `core` module:
+
 ```kotlin
-class App {
+// core/src/commonMain/kotlin/.../core/AppContainerImpl.kt
+class AppContainerImpl : AppContainer {
     // ...
-    suspend fun init() {
-        if (!isAppInitialized) {
-          // ...
+    override suspend fun init() {
+        if (isInitialized) return
 
-          val digitalCredentials = DigitalCredentials.getDefault()
-          if (digitalCredentials.registerAvailable) {
-              try {
-                  digitalCredentials.register(
-                      documentStore = documentStore,
-                      documentTypeRepository = documentTypeRepository,
-                  )
-              } catch (_: Throwable) {
-              }
+        // ... other initialization
 
-              // Re-register if document store changes...
-              CoroutineScope(Dispatchers.Default).launch {
-                  documentStore.eventFlow
-                      .onEach { event ->
-                          try {
-                              digitalCredentials.register(
-                                  documentStore = documentStore,
-                                  documentTypeRepository = documentTypeRepository,
-                              )
-                          } catch (_: Throwable) {
-                          }
-                      }
-                      .launchIn(this)
-              }
-          }
+        val digitalCredentials = DigitalCredentials.getDefault()
+        if (digitalCredentials.registerAvailable) {
+            try {
+                digitalCredentials.register(
+                    documentStore = documentStore,
+                    documentTypeRepository = documentTypeRepository,
+                )
+            } catch (_: Throwable) {
+            }
 
-          // ...
-          isAppInitialized = true
+            // Re-register if document store changes...
+            CoroutineScope(Dispatchers.Default).launch {
+                documentStore.eventFlow
+                    .onEach { event ->
+                        try {
+                            digitalCredentials.register(
+                                documentStore = documentStore,
+                                documentTypeRepository = documentTypeRepository,
+                            )
+                        } catch (_: Throwable) {
+                        }
+                    }
+                    .launchIn(this)
+            }
         }
+
+        // ...
+        isInitialized = true
     }
 }
 ```
@@ -200,7 +202,7 @@ class App {
 * Registers credentials with the platform's Digital Credentials provider for the W3C DC API.
 * Automatically re-registers credentials whenever the document store changes (e.g., after adding or removing documents).
 
-Refer to [**this code from App.kt**](https://github.com/openwallet-foundation/multipaz-samples/blob/0ee75e993114b37a586abcc68a72f0b21e700ee9/MultipazGettingStartedSample/composeApp/src/commonMain/kotlin/org/multipaz/getstarted/App.kt#L296-L321) for context.
+Refer to [**this code from AppContainerImpl.kt**](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/core/src/commonMain/kotlin/org/multipaz/getstarted/core/AppContainerImpl.kt#L215-L238) for context.
 
 ### **6. Updating Reader Trust Manager**
 
@@ -213,7 +215,7 @@ Make sure that you have configured the app's reader trust manager to trust the o
 #### **Test with Supported Browsers**
 
 * Install Chrome (or other listed browsers) on your Android device.
-* Open [verifier.multipaz.org](verifier.multipaz.org)
+* Open [verifier.multipaz.org](https://verifier.multipaz.org)
 * Select “US Transportation” under “Driving License (mDoC)”
 * Follow the on screen instructions & when prompted, select Multipaz Getting Started as the credential provider.
 * You will be able to see the details of the received credential in the browser screen.

@@ -13,21 +13,37 @@ You can retrieve all documents stored in the `DocumentStore` using `DocumentStor
 
 1: **Define the `listDocuments` function**
 
+The `listDocuments` function is part of the `AppContainer` interface and implemented in `AppContainerImpl` (in the `core` module):
+
 ```kotlin
-class App {
-    suspend fun listDocuments(): MutableList<Document> {
+// core/src/commonMain/kotlin/.../core/AppContainer.kt
+interface AppContainer {
+    
+    suspend fun listDocuments(): MutableList<Document>
+
+    // ... rest of the implementations
+}
+```
+
+Refer to **[this AppContainer code](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/core/src/commonMain/kotlin/org/multipaz/getstarted/core/AppContainer.kt#L31)** for the complete example.
+
+```kotlin
+// core/src/commonMain/kotlin/.../core/AppContainerImpl.kt
+class AppContainerImpl : AppContainer {
+    // ...
+    override suspend fun listDocuments(): MutableList<Document> {
         val documents = mutableStateListOf<Document>()
         for (document in documentStore.listDocuments()) {
-            document.let { document ->
-                if (!documents.contains(document)) {
-                    documents.add(document)
-                }
+            if (!documents.contains(document)) {
+                documents.add(document)
             }
         }
         return documents
     }
 }
 ```
+
+Refer to **[this listDocuments code](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/core/src/commonMain/kotlin/org/multipaz/getstarted/core/AppContainerImpl.kt#L243-L251)** for the complete example.
 
 2: **Implement the UI for listing documents in `HomeScreen` Composable**
 
@@ -38,7 +54,7 @@ fun HomeScreen(
     documents: List<Document>, // add document list and deletion callbacks as a parameters
     onDeleteDocument: (Document) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope { App.promptModel }
+    val coroutineScope = rememberCoroutineScope { AppContainer.promptModel }
 
     Column {
         // ...
@@ -68,12 +84,14 @@ fun HomeScreen(
 
 ```kotlin
 class App {
+    private val container = AppContainer.getInstance()
+
     @Composable
     fun Content() {
         val documents = remember { mutableStateListOf<Document>() }
 
         LaunchedEffect(navController.currentDestination) {
-            val currentDocuments = listDocuments()
+            val currentDocuments = container.listDocuments()
             if (currentDocuments.size != documents.size) {
                 documents.apply {
                     clear()
@@ -89,7 +107,7 @@ class App {
                 NavHost {
                     composable<Destination.HomeDestination> {
                         HomeScreen(
-                            app = this@App,
+                            container = container,
                             navController = navController,
                             documents = documents,
                             onDeleteDocument = {
@@ -115,7 +133,7 @@ You can add the following code to `HomeScreen` Composable to add a small delete 
 
 ```kotlin
 // delete button here (explained in next step)
-if (document.displayName != SAMPLE_DOCUMENT_DISPLAY_NAME) {
+if (document.displayName != CredentialDomains.SAMPLE_DOCUMENT_DISPLAY_NAME) {
     IconButton(
         content = @Composable {
             Icon(
@@ -125,7 +143,7 @@ if (document.displayName != SAMPLE_DOCUMENT_DISPLAY_NAME) {
         },
         onClick = {
             coroutineScope.launch {
-                app.documentStore.deleteDocument(document.identifier)
+                container.documentStore.deleteDocument(document.identifier)
                 onDeleteDocument(document)
             }
         }
@@ -133,6 +151,6 @@ if (document.displayName != SAMPLE_DOCUMENT_DISPLAY_NAME) {
 }
 ```
 
-Refer to **[this code from `HomeScreen.kt`](https://github.com/openwallet-foundation/multipaz-samples/blob/0ee75e993114b37a586abcc68a72f0b21e700ee9/MultipazGettingStartedSample/composeApp/src/commonMain/kotlin/org/multipaz/getstarted/HomeScreen.kt#L213-L245)** and [**from `App.kt`**](https://github.com/openwallet-foundation/multipaz-samples/blob/0ee75e993114b37a586abcc68a72f0b21e700ee9/MultipazGettingStartedSample/composeApp/src/commonMain/kotlin/org/multipaz/getstarted/App.kt#L372-L382) for the complete example.
+Refer to **[this code from `HomeScreen.kt`](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/composeApp/src/commonMain/kotlin/org/multipaz/getstarted/HomeScreen.kt#L110-L141)** and [**from `App.kt`**](https://github.com/openwallet-foundation/multipaz-samples/blob/4a3ce5671b4286c18162060558ad78c30f17b063/MultipazGettingStartedSample/composeApp/src/commonMain/kotlin/org/multipaz/getstarted/App.kt#L116-L126) for the complete example.
 
 By following these steps, you can efficiently list, fetch, and delete documents managed by your `DocumentStore`, ensuring your application's document management remains clean and up-to-date.
